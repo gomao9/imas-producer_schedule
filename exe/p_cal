@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'imas/producer_schedule'
+c = Imas::ProducerSchedule::Client.new
+c.output_cal(ARGV.first || '.')
