@@ -29,9 +29,9 @@ module Imas::ProducerSchedule
     def output_cal(output_dir = '.')
       # カレンダー情報定義
       cals = [
-        { name:"プロデューサー予定表", 
+        { name:"プロデューサー予定表",
           file:"schedule.ics",
-          test: lambda{|schedule| true},
+          test: lambda{|schedule| true },
       },
       { name:"定期配信番組除外版",
         file:"schedule_irregular.ics",
