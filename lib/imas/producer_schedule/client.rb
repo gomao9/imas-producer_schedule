@@ -72,8 +72,9 @@ module Imas::ProducerSchedule
 
       @months.each do |year, str, num, type|
         url = case type
-              when 'a' then "http://idolmaster.jp/schedule/#{year}#{str.to_s}.php"
-              when 'b' then "http://idolmaster.jp/schedule/#{year}/#{str.to_s}.php"
+              when 'a' then "http://idolmaster.jp/schedule/#{year}#{str}.php"
+              when 'b' then "http://idolmaster.jp/schedule/#{year}/#{str}.php"
+              when 'c' then "http://idolmaster.jp/schedule/?ey=#{year}&em=#{str}"
               end
         schedules = parse_calendar url
         month = num
