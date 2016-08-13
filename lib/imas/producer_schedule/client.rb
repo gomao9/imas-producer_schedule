@@ -1,6 +1,7 @@
 require 'open-uri'
 require 'icalendar'
 require 'nokogiri'
+require 'yaml'
 require 'active_support'
 
 module Imas::ProducerSchedule
@@ -25,6 +26,12 @@ module Imas::ProducerSchedule
     ]
     HEADER_OFFSET = 3
     TZID = 'Asia/Tokyo'
+    DEFAULT_MONTH_PATH = File.join(File.expand_path('../../../../', __FILE__), 'months.yml')
+
+
+    def initialize(month_path = DEFAULT_MONTH_PATH)
+      @months = ::YAML.load_file(month_path)
+    end
 
     def output_cal(output_dir = '.')
       # カレンダー情報定義
@@ -63,39 +70,10 @@ module Imas::ProducerSchedule
         cal[:cal] = calendar
       end
 
-
-      # 月設定
-      months = [
-        [2014, 'july', 7, :a],
-        [2014, 'august', 8, :a],
-        [2014, 'september', 9, :a],
-        [2014, 'october', 10, :a],
-        [2014, 'november', 11, :a],
-        [2014, 'december', 12, :a],
-        [2015, 'january', 1, :a],
-        [2015, 'february', 2, :a],
-        [2015, 'march', 3, :a],
-        [2015, 'april', 4, :a],
-        [2015, 'may', 5, :a],
-        [2015, 'june', 6, :a],
-        [2015, 'july', 7, :a],
-        [2015, 'august', 8, :a],
-        [2015, 'september', 9, :a],
-        [2015, 'october', 10, :a],
-        [2015, 'november', 11, :a],
-        [2015, 'december', 12, :a],
-        [2016, 'january', 1, :b],
-        [2016, 'february', 2, :b],
-        [2016, 'march', 3, :b],
-        [2016, 'april', 4, :b],
-        [2016, 'may', 5, :b],
-        [2016, 'june', 6, :b],
-        [2016, 'july', 7, :b],
-      ]
-
-      months.each do |year, str, num, fmt|
-        url = if fmt == :a then "http://idolmaster.jp/schedule/#{year}#{str.to_s}.php"
-              else "http://idolmaster.jp/schedule/#{year}/#{str.to_s}.php"
+      @months.each do |year, str, num, type|
+        url = case type
+              when 'a' then "http://idolmaster.jp/schedule/#{year}#{str.to_s}.php"
+              when 'b' then "http://idolmaster.jp/schedule/#{year}/#{str.to_s}.php"
               end
         schedules = parse_calendar url
         month = num
