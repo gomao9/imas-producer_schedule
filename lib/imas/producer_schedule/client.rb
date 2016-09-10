@@ -5,24 +5,28 @@ require 'yaml'
 require 'active_support'
 
 module Imas::ProducerSchedule
+  def self.normalize(str)
+    str&.unicode_normalize(:nfkc)&.delete("\r\n")
+  end
+
   class Client
     REGULAR_ARTICLE = [
-      /^デレラジ$/,
-      /^THE IDOLM@STER STATION!!\+$/,
-      /^ラジオdeアイマchu!!$/,
-      /^アイマスタジオ$/,
-      /^【CINDERELLA Night】デレラジA$/,
-      /^CINDERELLA PARTY!$/,
-      /^THE IDOLM@STER STATION!!!$/,
-      /^ミリオンラジオ！$/,
-      /^アイドルマスター シンデレラガールズ .{1,2}話放送$/,
-      /^アイドルマスター シンデレラガールズ .{1,2}話配信（バンダイチャンネル）$/,
-      /^【CINDERELLA Night】アイドルマスター シンデレラガールズ .{1,2}話配信（ニコ生）$/,
-      /^「リスアニ！TV」TVAシンデレラガールズコーナー$/,
-      /^315プロNight!$/,
-      /^アイドルマスター .{1,2}話放送（再放送）$/,
-      /^アイドルマスター シンデレラガールズ　.{1,2}話放送（再放送）$/,
-      /^デレラジ☆（スター）$/,
+      Regexp.new(Imas::ProducerSchedule.normalize("^デレラジ$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^THE IDOLM@STER STATION!!\+$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^ラジオdeアイマchu!!$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^アイマスタジオ$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^【CINDERELLA Night】デレラジA$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^CINDERELLA PARTY!$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^THE IDOLM@STER STATION!!!$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^ミリオンラジオ！$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^アイドルマスター シンデレラガールズ .{1,2}話放送$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^アイドルマスター シンデレラガールズ .{1,2}話配信（バンダイチャンネル）$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^【CINDERELLA Night】アイドルマスター シンデレラガールズ .{1,2}話配信（ニコ生）$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^「リスアニ！TV」TVAシンデレラガールズコーナー$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^315プロNight!$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^アイドルマスター .{1,2}話放送（再放送）$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^アイドルマスター シンデレラガールズ　.{1,2}話放送（再放送）$")),
+      Regexp.new(Imas::ProducerSchedule.normalize("^デレラジ☆（スター）$")),
     ]
     HEADER_OFFSET = 3
     TZID = 'Asia/Tokyo'
@@ -133,10 +137,10 @@ module Imas::ProducerSchedule
     def to_schedule tr
       # ジャンル
       genre = tr.at('.//td[@class="genre2"]').try(:text)
-      genre = normalize(genre)
+      genre = Imas::ProducerSchedule.normalize(genre)
       # 内容・リンク
       article = tr.at('.//td[@class="article2"]').try(:text)
-      article = normalize(article)
+      article = Imas::ProducerSchedule.normalize(article)
       link  = tr.at('.//td[@class="article2"]/a').try(:[], 'href')
       # 日付
       day = tr.at('.//td[@class="day2"]/img')
@@ -144,11 +148,11 @@ module Imas::ProducerSchedule
       day = day['src'][-6..-5].to_i if day
       # 時刻
       time =  tr.at('.//td[@class="time2"]').try(:text)
-      time = normalize(time)
+      time = Imas::ProducerSchedule.normalize(time)
       # From-To
       from, to = time.try(:tr, '１２３４５６７８９０：', '1234567890:').try(:scan, /\d\d:\d\d/)
-      from = normalize(from)
-      to   = normalize(to)
+      from = Imas::ProducerSchedule.normalize(from)
+      to   = Imas::ProducerSchedule.normalize(to)
       # 出演者
       performance =  tr.at('.//td[@class="performance2"]/img').try(:[], 'alt')
       # 詳細
@@ -196,10 +200,6 @@ module Imas::ProducerSchedule
           s.dtstart      = '19700101T000000'
         end
       end
-    end
-
-    def normalize(str)
-      str&.unicode_normalize(:nfkc)&.delete("\r\n")
     end
   end
 end
