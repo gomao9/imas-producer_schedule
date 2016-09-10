@@ -133,8 +133,10 @@ module Imas::ProducerSchedule
     def to_schedule tr
       # ジャンル
       genre = tr.at('.//td[@class="genre2"]').try(:text)
+      genre = normalize(genre)
       # 内容・リンク
       article = tr.at('.//td[@class="article2"]').try(:text)
+      article = normalize(article)
       link  = tr.at('.//td[@class="article2"]/a').try(:[], 'href')
       # 日付
       day = tr.at('.//td[@class="day2"]/img')
@@ -142,8 +144,11 @@ module Imas::ProducerSchedule
       day = day['src'][-6..-5].to_i if day
       # 時刻
       time =  tr.at('.//td[@class="time2"]').try(:text)
+      time = normalize(time)
       # From-To
       from, to = time.try(:tr, '１２３４５６７８９０：', '1234567890:').try(:scan, /\d\d:\d\d/)
+      from = normalize(from)
+      to   = normalize(to)
       # 出演者
       performance =  tr.at('.//td[@class="performance2"]/img').try(:[], 'alt')
       # 詳細
@@ -191,6 +196,10 @@ module Imas::ProducerSchedule
           s.dtstart      = '19700101T000000'
         end
       end
+    end
+
+    def normalize(str)
+      str&.unicode_normalize(:nfkc)&.delete("\r\n")
     end
   end
 end
