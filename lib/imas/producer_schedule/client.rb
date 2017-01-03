@@ -23,6 +23,7 @@ module Imas::ProducerSchedule
       /^アイドルマスター .{1,2}話放送（再放送）$/,
       /^アイドルマスター シンデレラガールズ　.{1,2}話放送（再放送）$/,
       /^デレラジ☆（スター）$/,
+      /^TVアニメ「アイドルマスター シンデレラガールズ」2nd SEASON$/,
     ]
     HEADER_OFFSET = 3
     TZID = 'Asia/Tokyo'
