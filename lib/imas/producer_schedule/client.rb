@@ -26,7 +26,9 @@ module Imas::ProducerSchedule
       /^TVアニメ「アイドルマスター シンデレラガールズ」2nd SEASON$/,
       /^シンデレラガールズ劇場 第.{1,2}話放送$/,
       /^アニメ アイドルマスター SideM 第.{1,2}話放送$/,
-
+      /^アイドルマスター シャイニーカラーズ はばたきラジオステーション$/,
+      /^アニメ　アイドルマスター SideM　理由あってMini!　第.{1,2}話放送$/,
+      /^THE IDOLM@STER MUSIC ON THE RADIO$/,
     ]
     HEADER_OFFSET = 3
     TZID = 'Asia/Tokyo'
