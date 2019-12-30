@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'open-uri'
 require 'icalendar'
 require 'nokogiri'
@@ -28,12 +30,11 @@ module Imas::ProducerSchedule
       /^アニメ アイドルマスター SideM 第.{1,2}話放送$/,
       /^アイドルマスター シャイニーカラーズ はばたきラジオステーション$/,
       /^アニメ　アイドルマスター SideM　理由あってMini!　第.{1,2}話放送$/,
-      /^THE IDOLM@STER MUSIC ON THE RADIO$/,
-    ]
+      /^THE IDOLM@STER MUSIC ON THE RADIO$/
+    ].freeze
     HEADER_OFFSET = 3
     TZID = 'Asia/Tokyo'
-    DEFAULT_MONTH_PATH = File.join(File.expand_path('../../../../', __FILE__), 'months.yml')
-
+    DEFAULT_MONTH_PATH = File.join(File.expand_path('../../..', __dir__), 'months.yml')
 
     def initialize(month_path = DEFAULT_MONTH_PATH)
       @months = ::YAML.load_file(month_path)
@@ -42,30 +43,24 @@ module Imas::ProducerSchedule
     def output_cal(output_dir = '.')
       # カレンダー情報定義
       cals = [
-        { name:"プロデューサー予定表",
-          file:"schedule.ics",
-          test: lambda{|schedule| true },
-      },
-      { name:"定期配信番組除外版",
-        file:"schedule_irregular.ics",
-        test: lambda{|schedule| REGULAR_ARTICLE.none? {|re| schedule[:article] =~ re} },
-      },
-      { name:"定期配信番組のみ",
-        file:"schedule_regular.ics",
-        test: lambda{|schedule| REGULAR_ARTICLE.any? {|re| schedule[:article] =~ re} },
-      },
-      { name:"発売日",
-        file:"release_day.ics",
-        test: lambda{|schedule| schedule[:time] == "発売日"}
-      },
-      { name:"イベント" ,
-        file:"event.ics",
-        test: lambda{|schedule| schedule[:genre].include? "イベント"}
-      },
-      { name:"ニコ生" ,
-        file:"nico_live.ics",
-        test: lambda{|schedule| schedule[:genre].include? "ニコ生"}
-      },
+        { name: 'プロデューサー予定表',
+          file: 'schedule.ics',
+          test: ->(_schedule) { true } },
+        { name: '定期配信番組除外版',
+          file: 'schedule_irregular.ics',
+          test: ->(schedule) { REGULAR_ARTICLE.none? { |re| schedule[:article] =~ re } } },
+        { name: '定期配信番組のみ',
+          file: 'schedule_regular.ics',
+          test: ->(schedule) { REGULAR_ARTICLE.any? { |re| schedule[:article] =~ re } } },
+        { name: '発売日',
+          file: 'release_day.ics',
+          test: ->(schedule) { schedule[:time] == '発売日' } },
+        { name: 'イベント',
+          file: 'event.ics',
+          test: ->(schedule) { schedule[:genre].include? 'イベント' } },
+        { name: 'ニコ生',
+          file: 'nico_live.ics',
+          test: ->(schedule) { schedule[:genre].include? 'ニコ生' } }
       ]
 
       # タイトル・タイムゾーン設定
@@ -95,7 +90,7 @@ module Imas::ProducerSchedule
 
           # 日付時刻
           if s[:from].nil?
-            e.dtstart = Icalendar::Values::Date.new(sprintf("%04d%02d%02d", year, month, day), 'tzid' => TZID)
+            e.dtstart = Icalendar::Values::Date.new(format('%04d%02d%02d', year, month, day), 'tzid' => TZID)
           else
             st_tm = to_datetime(year, month, day, *split_time(s[:from]))
             ed_tm = st_tm
@@ -122,7 +117,6 @@ module Imas::ProducerSchedule
           cals.each do |c|
             c[:cal].add_event e if c[:test].call(s)
           end
-
         end
       end
 
@@ -131,27 +125,26 @@ module Imas::ProducerSchedule
         c[:cal].publish
         open(File.join(output_dir, c[:file]), 'w') { |f| f.write(c[:cal].to_ical) }
       end
-
     end
-    
+
     private
 
-    def to_schedule tr
+    def to_schedule(tr)
       # ジャンル
       genre = tr.at('.//td[@class="genre2"]').try(:text)
       # 内容・リンク
       article = tr.at('.//td[@class="article2"]').try(:text)
-      link  = tr.at('.//td[@class="article2"]/a').try(:[], 'href')
+      link = tr.at('.//td[@class="article2"]/a').try(:[], 'href')
       # 日付
       day = tr.at('.//td[@class="day2"]/img')
-      day = tr.at('.//td[@class="day"]/img') unless day
+      day ||= tr.at('.//td[@class="day"]/img')
       day = day['src'][-6..-5].to_i if day
       # 時刻
-      time =  tr.at('.//td[@class="time2"]').try(:text)
+      time = tr.at('.//td[@class="time2"]').try(:text)
       # From-To
       from, to = time.try(:tr, '１２３４５６７８９０：', '1234567890:').try(:scan, /\d\d:\d\d/)
       # 出演者
-      performance =  tr.at('.//td[@class="performance2"]/img').try(:[], 'alt')
+      performance = tr.at('.//td[@class="performance2"]/img').try(:[], 'alt')
       # 詳細
       description = "時間：#{time}\n"
       description << "出演：#{performance}\n"
@@ -159,11 +152,13 @@ module Imas::ProducerSchedule
       description << "リンク：#{link}\n"
 
       # ハッシュ生成
-      {day:day, time:time, genre:genre.try(:strip), article:article, link:link, from:from, to:to, description:description} unless article.blank?
+      unless article.blank?
+        { day: day, time: time, genre: genre.try(:strip), article: article, link: link, from: from, to: to, description: description }
+      end
     end
 
-    def parse_calendar url
-      html = open(url) { |f| f.read }
+    def parse_calendar(url)
+      html = open(url, &:read)
       charset = 'utf-8'
 
       # htmlをパースしてオブジェクトを生成
@@ -173,7 +168,7 @@ module Imas::ProducerSchedule
       end.compact
     end
 
-    def to_datetime year, month, day, hour, min
+    def to_datetime(year, month, day, hour, min)
       if hour >= 24
         hour -= 24
         exceed = true
@@ -183,11 +178,11 @@ module Imas::ProducerSchedule
       Icalendar::Values::DateTime.new datetime, 'tzid' => TZID
     end
 
-    def split_time hm_string
+    def split_time(hm_string)
       hm_string.split(':').map(&:to_i)
     end
 
-    def set_timezone cal
+    def set_timezone(cal)
       cal.timezone do |t|
         t.tzid = TZID
         t.standard do |s|

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module Imas
   module ProducerSchedule
-    VERSION = "0.1.6"
+    VERSION = '0.1.6'
   end
 end
