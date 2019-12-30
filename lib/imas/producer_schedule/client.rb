@@ -147,9 +147,9 @@ module Imas::ProducerSchedule
       performance = tr.at('.//td[@class="performance2"]/img').try(:[], 'alt')
       # 詳細
       description = "時間：#{time}\n"
-      description << "出演：#{performance}\n"
-      description << "記事：#{article}\n"
-      description << "リンク：#{link}\n"
+      description += "出演：#{performance}\n"
+      description += "記事：#{article}\n"
+      description += "リンク：#{link}\n"
 
       # ハッシュ生成
       unless article.blank?
@@ -158,7 +158,7 @@ module Imas::ProducerSchedule
     end
 
     def parse_calendar(url)
-      html = open(url, &:read)
+      html = URI.open(url, &:read)
       charset = 'utf-8'
 
       # htmlをパースしてオブジェクトを生成
